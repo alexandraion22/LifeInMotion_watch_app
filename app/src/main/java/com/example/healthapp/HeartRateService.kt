@@ -30,7 +30,8 @@ class HeartRateService : Service(), SensorEventListener2 {
     private lateinit var wakeLock: PowerManager.WakeLock
     private var currentHeartRate: Float = 0f
     private val handler = Handler(Looper.getMainLooper())
-    private val interval: Long = 60000 // 1 minutes in milliseconds
+    private val interval: Long = 240000 // 4 minutes in milliseconds
+    private var isRegistered = false
 
     private val broadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {
@@ -62,7 +63,9 @@ class HeartRateService : Service(), SensorEventListener2 {
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(broadcastReceiver)
-        mSensorManager.unregisterListener(this)
+        if (isRegistered) {
+            mSensorManager.unregisterListener(this)
+        }
         handler.removeCallbacks(heartRateRunnable)
         wakeLock.release()
     }
@@ -90,11 +93,6 @@ class HeartRateService : Service(), SensorEventListener2 {
 
         startForeground(1, notification)
 
-        mHeartRateSensor.also { heartRate ->
-            // Register listener with custom sampling period and handler
-            mSensorManager.registerListener(this, heartRate, 20000, handler)
-        }
-
         return START_STICKY
     }
 
@@ -119,13 +117,25 @@ class HeartRateService : Service(), SensorEventListener2 {
 
     override fun onSensorChanged(event: SensorEvent?) {
         val heartRate = event?.values?.get(0) ?: return
-        currentHeartRate = heartRate
+        if(heartRate.toInt() !=0)
+            currentHeartRate = heartRate
+        Log.e(TAG,currentHeartRate.toString())
     }
 
     private val heartRateRunnable = object : Runnable {
         override fun run() {
-            broadcastHeartRate()
-            handler.postDelayed(this, interval)
+            if (isRegistered) {
+                broadcastHeartRate()
+                Log.e(TAG,"Closed service")
+                mSensorManager.unregisterListener(this@HeartRateService, mHeartRateSensor)
+                isRegistered = false
+                handler.postDelayed(this, 270000) // Wait 4.5 minutes before registering again
+            } else {
+                Log.e(TAG,"Started service")
+                mSensorManager.registerListener(this@HeartRateService, mHeartRateSensor, SensorManager.SENSOR_DELAY_NORMAL)
+                isRegistered = true
+                handler.postDelayed(this, 30000) // Run for 30 seconds
+            }
         }
     }
 
