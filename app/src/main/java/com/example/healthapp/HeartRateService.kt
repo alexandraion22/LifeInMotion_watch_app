@@ -1,5 +1,6 @@
 package com.example.healthapp
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -29,7 +30,7 @@ class HeartRateService : Service(), SensorEventListener2 {
     private lateinit var wakeLock: PowerManager.WakeLock
     private var currentHeartRate: Float = 0f
     private val handler = Handler(Looper.getMainLooper())
-    private val interval: Long = 180000 // 3 minutes in milliseconds
+    private val interval: Long = 60000 // 1 minutes in milliseconds
 
     private val broadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {
@@ -47,7 +48,7 @@ class HeartRateService : Service(), SensorEventListener2 {
         registerReceiver(broadcastReceiver, intentFilter)
 
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        mHeartRateSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE)
+        mHeartRateSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE)!!
 
         wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
             newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "HealthApp::BackgroundStreaming").apply {
@@ -66,6 +67,7 @@ class HeartRateService : Service(), SensorEventListener2 {
         wakeLock.release()
     }
 
+    @SuppressLint("ForegroundServiceType")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         createNotificationChannel()
         val notificationIntent = Intent(this, MainActivity::class.java)
@@ -130,5 +132,10 @@ class HeartRateService : Service(), SensorEventListener2 {
     private fun broadcastHeartRate() {
         val roundedHeartRate = currentHeartRate.roundToInt()
         Log.e(TAG,roundedHeartRate.toString())
+        var updateHRIntent = Intent();
+        updateHRIntent.action = "updateHR";
+        updateHRIntent.putExtra("bpm", roundedHeartRate);
+        this.sendBroadcast(updateHRIntent);
+
     }
 }
