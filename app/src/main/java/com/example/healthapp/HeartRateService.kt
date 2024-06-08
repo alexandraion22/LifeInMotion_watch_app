@@ -1,4 +1,4 @@
-package com.example.heartrate_streamer
+package com.example.healthapp
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -50,7 +50,7 @@ class HeartRateService : Service(), SensorEventListener2 {
         mHeartRateSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE)
 
         wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
-            newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "HeartWear::BackgroundStreaming").apply {
+            newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "HealthApp::BackgroundStreaming").apply {
                 acquire()
             }
         }
@@ -79,7 +79,7 @@ class HeartRateService : Service(), SensorEventListener2 {
         val pendingIntentStopAction = PendingIntent.getBroadcast(this, 12345, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
         val notification = NotificationCompat.Builder(this, "hrservice")
-            .setContentTitle("HeartWear")
+            .setContentTitle("Life in Motion")
             .setContentText("Streaming heart rate in the background...")
             .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Stop", pendingIntentStopAction)
             .setSmallIcon(R.drawable.ic_launcher_foreground)

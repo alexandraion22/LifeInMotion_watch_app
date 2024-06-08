@@ -1,4 +1,4 @@
-package com.example.heartrate_streamer
+package com.example.healthapp
 
 import android.content.Intent
 import android.content.pm.PackageManager

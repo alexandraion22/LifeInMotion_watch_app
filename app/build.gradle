@@ -8,7 +8,7 @@ android {
     buildToolsVersion "30.0.2"
 
     defaultConfig {
-        applicationId "de.domi2803.heartrate_streamer"
+        applicationId "com.example.healthapp"
         minSdkVersion 25
         targetSdkVersion 30
         versionCode 4
