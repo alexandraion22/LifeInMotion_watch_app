@@ -19,7 +19,6 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.os.PowerManager
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import kotlin.math.roundToInt
 
@@ -30,7 +29,8 @@ class HeartRateService : Service(), SensorEventListener2 {
     private lateinit var wakeLock: PowerManager.WakeLock
     private var currentHeartRate: Float = 0f
     private val handler = Handler(Looper.getMainLooper())
-    private val interval: Long = 240000 // 4 minutes in milliseconds
+    private val unregisteredInterval: Long = 270000 // 4.5 minutes in milliseconds
+    private val registeredInterval: Long = 30000 // 0.5 minutes in milliseconds
     private var isRegistered = false
 
     private val broadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
@@ -85,7 +85,7 @@ class HeartRateService : Service(), SensorEventListener2 {
 
         val notification = NotificationCompat.Builder(this, "hrservice")
             .setContentTitle("Life in Motion")
-            .setContentText("Streaming heart rate in the background...")
+            .setContentText("App running in background to collect health data")
             .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Stop", pendingIntentStopAction)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentIntent(pendingIntent)
@@ -104,7 +104,7 @@ class HeartRateService : Service(), SensorEventListener2 {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val serviceChannel = NotificationChannel(
                 "hrservice",
-                "HeartWear Background Service",
+                "Life In Motion Background Service",
                 NotificationManager.IMPORTANCE_LOW
             )
             val manager = getSystemService(NotificationManager::class.java)
@@ -119,33 +119,33 @@ class HeartRateService : Service(), SensorEventListener2 {
         val heartRate = event?.values?.get(0) ?: return
         if(heartRate.toInt() !=0)
             currentHeartRate = heartRate
-        Log.e(TAG,currentHeartRate.toString())
     }
 
     private val heartRateRunnable = object : Runnable {
         override fun run() {
             if (isRegistered) {
-                broadcastHeartRate()
-                Log.e(TAG,"Closed service")
                 mSensorManager.unregisterListener(this@HeartRateService, mHeartRateSensor)
                 isRegistered = false
-                handler.postDelayed(this, 270000) // Wait 4.5 minutes before registering again
+                broadcastHeartRate()
+                handler.postDelayed(this, unregisteredInterval) // Wait 4.5 minutes before registering again
             } else {
-                Log.e(TAG,"Started service")
                 mSensorManager.registerListener(this@HeartRateService, mHeartRateSensor, SensorManager.SENSOR_DELAY_NORMAL)
                 isRegistered = true
-                handler.postDelayed(this, 30000) // Run for 30 seconds
+                handler.postDelayed(this, registeredInterval) // Run for 30 seconds
             }
         }
     }
 
     private fun broadcastHeartRate() {
         val roundedHeartRate = currentHeartRate.roundToInt()
-        Log.e(TAG,roundedHeartRate.toString())
-        var updateHRIntent = Intent();
-        updateHRIntent.action = "updateHR";
-        updateHRIntent.putExtra("bpm", roundedHeartRate);
-        this.sendBroadcast(updateHRIntent);
+        if(roundedHeartRate!=0){
+            val updateHRIntent = Intent();
+            updateHRIntent.action = "updateHR";
+            updateHRIntent.putExtra("bpm", roundedHeartRate);
+            this.sendBroadcast(updateHRIntent);
+        }
+        currentHeartRate = 0F;
+
 
     }
 }
