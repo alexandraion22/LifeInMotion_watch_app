@@ -48,6 +48,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         checkPermission(android.Manifest.permission.BODY_SENSORS)
         checkPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+        checkPermission(android.Manifest.permission.ACTIVITY_RECOGNITION)
         val filter = IntentFilter()
         filter.addAction("updateHR")
         registerReceiver(broadcastReceiver, filter)
@@ -110,6 +111,9 @@ class MainActivity : ComponentActivity() {
         Intent(this, HeartRateService::class.java).also { intent ->
             startService(intent);
         }
+        Intent(this, StepCountService::class.java).also { intent ->
+            startService(intent)
+        }
 
     }
 
@@ -117,6 +121,9 @@ class MainActivity : ComponentActivity() {
         super.onPause()
         Intent(this, HeartRateService::class.java).also { intent ->
             startService(intent);
+        }
+        Intent(this, StepCountService::class.java).also { intent ->
+            startService(intent)
         }
         Toast.makeText(this, "Measuring will continue in the background", Toast.LENGTH_LONG).show();
     }
