@@ -18,7 +18,6 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.os.PowerManager
-import android.util.Log
 import androidx.core.app.NotificationCompat
 
 class StepCountService : Service(), SensorEventListener {
@@ -29,7 +28,7 @@ class StepCountService : Service(), SensorEventListener {
     private var currentStepCount: Int = 0
     private var lastStepCount: Int = 0
     private val handler = Handler(Looper.getMainLooper())
-    private val updateInterval: Long = 300000 // 5 minutes in milliseconds
+    private val updateInterval: Long = 240000 // 4 minutes in milliseconds
 
     private val broadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {
@@ -42,7 +41,6 @@ class StepCountService : Service(), SensorEventListener {
 
     override fun onCreate() {
         super.onCreate()
-        Log.e("HERE","HERE")
         val intentFilter = IntentFilter()
         intentFilter.addAction(STOP_ACTION)
         registerReceiver(broadcastReceiver, intentFilter)
@@ -111,13 +109,10 @@ class StepCountService : Service(), SensorEventListener {
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
     override fun onSensorChanged(event: SensorEvent?) {
-        Log.e("Entered","AA")
         val steps = event?.values?.get(0)?.toInt() ?: return
-        if (lastStepCount == 0) {
+        if(lastStepCount == 0)
             lastStepCount = steps
-        }
         currentStepCount = steps - lastStepCount
-        Log.e("HEREEEE",currentStepCount.toString())
     }
 
     private val stepCountRunnable = object : Runnable {
@@ -128,11 +123,13 @@ class StepCountService : Service(), SensorEventListener {
     }
 
     private fun broadcastStepCount() {
-//        val updateStepIntent = Intent()
-//        updateStepIntent.action = "updateSteps"
-//        updateStepIntent.putExtra("steps", currentStepCount)
-//        this.sendBroadcast(updateStepIntent)
-        lastStepCount += currentStepCount
-        currentStepCount = 0
+        if(currentStepCount!=0){
+            val updateStepsIntent = Intent();
+            updateStepsIntent.action = "updateSteps";
+            updateStepsIntent.putExtra("steps", currentStepCount);
+            this.sendBroadcast(updateStepsIntent);
+            lastStepCount += currentStepCount
+            currentStepCount = 0
+        }
     }
 }

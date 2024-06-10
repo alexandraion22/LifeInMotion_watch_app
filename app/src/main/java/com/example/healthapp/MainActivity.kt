@@ -5,20 +5,18 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.Text
@@ -35,22 +33,80 @@ class MainActivity : ComponentActivity() {
 
     private var transcriptionNodeId: String? = null
 
+    private val requestMultiplePermissions = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        if (permissions.all { it.value }) {
+            startServices()
+        } else {
+            Toast.makeText(this, "Permissions denied", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun startServices() {
+        Intent(this, HeartRateService::class.java).also { intent ->
+            startService(intent)
+        }
+        Intent(this, StepCountService::class.java).also { intent ->
+            startService(intent)
+        }
+    }
+
     private var broadcastReceiver = object : BroadcastReceiver() {
         @SuppressLint("SetTextI18n")
         override fun onReceive(context: Context?, intent: Intent?) {
-            val bpm: Any = intent?.extras?.get("bpm") ?: return;
-            deployData(bpm.toString())
+            intent?.extras?.apply {
+                val bpm = getInt("bpm")
+                if(bpm!=0)
+                    deployBpm(bpm.toString())
+                val steps = getInt("steps")
+                if (steps!=0) {
+                    deploySteps(steps.toString())
+                }
+            }
         }
+    }
+
+
+    private fun deployBpm(bpm: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+            val dataToSend = "$timestamp|$bpm"
+            transcriptionNodeId = getNodes().firstOrNull()?.also { nodeId ->
+                Wearable.getMessageClient(applicationContext).sendMessage(
+                    nodeId,
+                    BPM_PATH,
+                    dataToSend.toByteArray())
+            }
+        }
+    }
+
+    private fun deploySteps(steps: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+            val dataToSend = "$timestamp|$steps"
+            transcriptionNodeId = getNodes().firstOrNull()?.also { nodeId ->
+                Wearable.getMessageClient(applicationContext).sendMessage(
+                    nodeId,
+                    STEPS_PATH,
+                    dataToSend.toByteArray())
+            }
+        }
+    }
+
+    companion object {
+        private const val BPM_PATH = "/bpm"
+        private const val STEPS_PATH = "/steps"
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        checkPermission(android.Manifest.permission.BODY_SENSORS)
-        checkPermission(android.Manifest.permission.POST_NOTIFICATIONS)
-        checkPermission(android.Manifest.permission.ACTIVITY_RECOGNITION)
+        val permissions = arrayOf(android.Manifest.permission.BODY_SENSORS, android.Manifest.permission.POST_NOTIFICATIONS, android.Manifest.permission.ACTIVITY_RECOGNITION)
+        requestMultiplePermissions.launch(permissions)
         val filter = IntentFilter()
         filter.addAction("updateHR")
+        filter.addAction("updateSteps")
         registerReceiver(broadcastReceiver, filter)
         setContent {
             HealthAppContent()
@@ -75,57 +131,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-
-    private fun deployData(bpm: String) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
-            val dataToSend = "$timestamp|$bpm"
-            transcriptionNodeId = getNodes().firstOrNull()?.also { nodeId ->
-                Wearable.getMessageClient(applicationContext).sendMessage(
-                    nodeId,
-                    MESSAGE_PATH,
-                    dataToSend.toByteArray())
-            }
-        }
-    }
-
-    companion object {
-        private const val MESSAGE_PATH = "/bpm"
-    }
-
     private fun getNodes(): Collection<String> {
         return Tasks.await(Wearable.getNodeClient(this).connectedNodes).map { it.id }
-    }
-
-
-    private fun checkPermission(permission: String) {
-        if (ContextCompat.checkSelfPermission(this@MainActivity, permission)
-            == PackageManager.PERMISSION_DENIED
-        ) {
-            ActivityCompat.requestPermissions(this@MainActivity, arrayOf(permission), 100)
-        }
-    }
-
-    override fun onStart() {
-        super.onStart();
-        Intent(this, HeartRateService::class.java).also { intent ->
-            startService(intent);
-        }
-        Intent(this, StepCountService::class.java).also { intent ->
-            startService(intent)
-        }
-
-    }
-
-    override fun onPause() {
-        super.onPause()
-        Intent(this, HeartRateService::class.java).also { intent ->
-            startService(intent);
-        }
-        Intent(this, StepCountService::class.java).also { intent ->
-            startService(intent)
-        }
-        Toast.makeText(this, "Measuring will continue in the background", Toast.LENGTH_LONG).show();
     }
 }
 

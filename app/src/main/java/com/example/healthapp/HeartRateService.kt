@@ -6,7 +6,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.BroadcastReceiver
-import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -104,7 +103,7 @@ class HeartRateService : Service(), SensorEventListener2 {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val serviceChannel = NotificationChannel(
                 "hrservice",
-                "Life In Motion Background Service",
+                "Life In Motion Heartrate Service",
                 NotificationManager.IMPORTANCE_LOW
             )
             val manager = getSystemService(NotificationManager::class.java)
@@ -117,7 +116,7 @@ class HeartRateService : Service(), SensorEventListener2 {
 
     override fun onSensorChanged(event: SensorEvent?) {
         val heartRate = event?.values?.get(0) ?: return
-        if(heartRate.toInt() !=0)
+        if(heartRate.toInt() in 1..249)
             currentHeartRate = heartRate
     }
 
