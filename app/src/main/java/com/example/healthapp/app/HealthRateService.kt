@@ -1,4 +1,4 @@
-package com.example.healthapp
+package com.example.healthapp.app
 
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
@@ -19,6 +19,7 @@ import android.os.IBinder
 import android.os.Looper
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
+import com.example.healthapp.R
 import kotlin.math.roundToInt
 
 class HeartRateService : Service(), SensorEventListener2 {

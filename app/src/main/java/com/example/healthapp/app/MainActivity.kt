@@ -1,4 +1,19 @@
-package com.example.healthapp
+/*
+ * Copyright 2022 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.example.healthapp.app
 
 import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
@@ -8,35 +23,44 @@ import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.Button
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
-import androidx.wear.compose.material.Button
-import androidx.wear.compose.material.Text
+import androidx.navigation.NavHostController
+import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
+import com.example.healthapp.presentation.ExerciseSampleApp
+import com.example.healthapp.presentation.exercise.ExerciseViewModel
 import com.google.android.gms.tasks.Tasks
 import com.google.android.gms.wearable.Wearable
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@AndroidEntryPoint
+class MainActivity : FragmentActivity() {
 
-class MainActivity : ComponentActivity() {
-
+    private lateinit var navController: NavHostController
     private var transcriptionNodeId: String? = null
 
+    private val exerciseViewModel by viewModels<ExerciseViewModel>()
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,6 +93,16 @@ class MainActivity : ComponentActivity() {
                     Text("Stop Sensors")
                 }
             }
+        }
+    }
+
+    private suspend fun prepareIfNoExercise() {
+        /** Check if we have an active exercise. If true, set our destination as the
+         * Exercise Screen. If false, route to preparing a new exercise. **/
+        val isRegularLaunch =
+            navController.currentDestination?.route == Screen.Exercise.route
+        if (isRegularLaunch && !exerciseViewModel.isExerciseInProgress()) {
+            navController.navigate(Screen.PreparingExercise.route)
         }
     }
 
@@ -166,5 +200,4 @@ class MainActivity : ComponentActivity() {
         return Tasks.await(Wearable.getNodeClient(this).connectedNodes).map { it.id }
     }
 }
-
 

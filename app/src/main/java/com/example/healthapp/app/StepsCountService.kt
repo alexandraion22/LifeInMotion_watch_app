@@ -1,4 +1,4 @@
-package com.example.healthapp
+package com.example.healthapp.app
 
 import android.annotation.SuppressLint
 import android.app.Service
