@@ -58,17 +58,43 @@ import java.util.Locale
 class MainActivity : FragmentActivity() {
 
     private lateinit var navController: NavHostController
-    private var transcriptionNodeId: String? = null
 
     private val exerciseViewModel by viewModels<ExerciseViewModel>()
-
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private var transcriptionNodeId: String? = null
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splash = installSplashScreen()
+        var pendingNavigation = true
+
+        splash.setKeepOnScreenCondition { pendingNavigation }
+
         super.onCreate(savedInstanceState)
+
         setContent {
-            HealthAppContent()
+            navController = rememberSwipeDismissableNavController()
+
+            ExerciseSampleApp(
+                navController,
+                onFinishActivity = { this.finish() },
+                onStartSensors = { startSensors() }
+            )
+
+            LaunchedEffect(Unit) {
+                prepareIfNoExercise()
+                pendingNavigation = false
+            }
         }
     }
+
+    private suspend fun prepareIfNoExercise() {
+        /** Check if we have an active exercise. If true, set our destination as the
+         * Exercise Screen. If false, route to preparing a new exercise. **/
+        val isRegularLaunch =
+            navController.currentDestination?.route == Screen.Exercise.route
+        if (isRegularLaunch && !exerciseViewModel.isExerciseInProgress()) {
+            navController.navigate(Screen.PreparingExercise.route)
+        }
+    }
+
 
     @Composable
     private fun HealthAppContent() {
@@ -93,16 +119,6 @@ class MainActivity : FragmentActivity() {
                     Text("Stop Sensors")
                 }
             }
-        }
-    }
-
-    private suspend fun prepareIfNoExercise() {
-        /** Check if we have an active exercise. If true, set our destination as the
-         * Exercise Screen. If false, route to preparing a new exercise. **/
-        val isRegularLaunch =
-            navController.currentDestination?.route == Screen.Exercise.route
-        if (isRegularLaunch && !exerciseViewModel.isExerciseInProgress()) {
-            navController.navigate(Screen.PreparingExercise.route)
         }
     }
 

@@ -44,10 +44,10 @@ import com.google.android.horologist.compose.layout.ResponsiveTimeText
 @Composable
 fun ExerciseSampleApp(
     navController: NavHostController,
-    onFinishActivity: () -> Unit
+    onFinishActivity: () -> Unit,
+    onStartSensors: () -> Unit // Lambda to start sensors
 ) {
     val currentScreen by navController.currentBackStackEntryAsState()
-
     val isAlwaysOnScreen = currentScreen?.destination?.route in AlwaysOnRoutes
 
     AmbientAware(
@@ -83,7 +83,8 @@ fun ExerciseSampleApp(
                                 }
                             }
                         },
-                        onFinishActivity = onFinishActivity
+                        onFinishActivity = onFinishActivity,
+                        onStartSensors = onStartSensors
                     )
                 }
 

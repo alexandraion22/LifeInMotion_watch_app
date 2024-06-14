@@ -71,6 +71,7 @@ fun PreparingExerciseRoute(
     onStart: () -> Unit,
     onFinishActivity: () -> Unit,
     onNoExerciseCapabilities: () -> Unit,
+    onStartSensors: () -> Unit // Lambda to start sensors
 ) {
     val viewModel = hiltViewModel<PreparingViewModel>()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -109,7 +110,8 @@ fun PreparingExerciseRoute(
                 viewModel.startExercise()
                 onStart()
             },
-            uiState = uiState
+            uiState = uiState,
+            onStartSensors = onStartSensors
         )
 
         if (uiState.isTrackingInAnotherApp) {
@@ -156,7 +158,8 @@ internal fun Modifier.ambientGray(ambientState: AmbientState): Modifier =
 fun PreparingExerciseScreen(
     ambientState: AmbientState,
     onStart: () -> Unit = {},
-    uiState: PreparingScreenState
+    uiState: PreparingScreenState,
+    onStartSensors: () -> Unit // Lambda to start sensors
 ) {
     Column(
         modifier = Modifier
@@ -189,6 +192,7 @@ fun PreparingExerciseScreen(
                 buttonSize = ButtonSize.Small,
                 enabled = uiState is PreparingScreenState.Preparing
             )
+            HealthAppContent(onStartSensors)
         }
     }
 }
