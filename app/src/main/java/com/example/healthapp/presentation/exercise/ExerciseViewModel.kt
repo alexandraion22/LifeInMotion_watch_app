@@ -31,12 +31,19 @@ class ExerciseViewModel @Inject constructor(
     private val healthServicesRepository: HealthServicesRepository
 ) : ViewModel() {
 
+    private var maxHeartRate: Double? = null
+    private var minHeartRate: Double? = null
+
     val uiState: StateFlow<ExerciseScreenState> = healthServicesRepository.serviceState.map {
+        val exerciseState = (it as? ServiceState.Connected)?.exerciseServiceState
+        updateHeartRateBounds(exerciseState?.exerciseMetrics?.heartRate)
         ExerciseScreenState(
             hasExerciseCapabilities = healthServicesRepository.hasExerciseCapability(),
             isTrackingAnotherExercise = healthServicesRepository.isTrackingExerciseInAnotherApp(),
             serviceState = it,
-            exerciseState = (it as? ServiceState.Connected)?.exerciseServiceState
+            exerciseState = exerciseState,
+            maxHeartRate = maxHeartRate,
+            minHeartRate = minHeartRate,
         )
     }.stateIn(
         viewModelScope,
@@ -46,11 +53,24 @@ class ExerciseViewModel @Inject constructor(
                 true,
                 false,
                 it,
-                (it as? ServiceState.Connected)?.exerciseServiceState
+                (it as? ServiceState.Connected)?.exerciseServiceState,
+                maxHeartRate = null,  // Initial values
+                minHeartRate = null,  // Initial values
             )
         }
-
     )
+
+    private fun updateHeartRateBounds(currentHeartRate: Double?) {
+        currentHeartRate?.let {
+            if (maxHeartRate == null || it > maxHeartRate!!) {
+                maxHeartRate = it
+            }
+            if(it.toInt() !=0)
+                if (minHeartRate == null || it < minHeartRate!!) {
+                    minHeartRate = it
+                }
+        }
+    }
 
     suspend fun isExerciseInProgress(): Boolean {
         return healthServicesRepository.isExerciseInProgress()

@@ -27,7 +27,7 @@ import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.currentBackStackEntryAsState
 import com.example.healthapp.app.Screen.Exercise
 import com.example.healthapp.app.Screen.ExerciseNotAvailable
-import com.example.healthapp.app.Screen.PreparingExercise
+import com.example.healthapp.app.Screen.Home
 import com.example.healthapp.app.Screen.Summary
 import com.example.healthapp.app.navigateToTopLevel
 import com.example.healthapp.presentation.dialogs.ExerciseNotAvailable
@@ -66,7 +66,7 @@ fun ExerciseSampleApp(
                 startDestination = Exercise.route,
 
                 ) {
-                composable(PreparingExercise.route) {
+                composable(Home.route) {
                     PreparingExerciseRoute(
                         ambientState = ambientStateUpdate.ambientState,
                         onStart = {
@@ -95,7 +95,7 @@ fun ExerciseSampleApp(
                             navController.navigateToTopLevel(Summary, Summary.buildRoute(it))
                         },
                         onRestart = {
-                            navController.navigateToTopLevel(PreparingExercise)
+                            navController.navigateToTopLevel(Home)
                         },
                         onFinishActivity = onFinishActivity
                     )
@@ -106,17 +106,19 @@ fun ExerciseSampleApp(
                 }
 
                 composable(
-                    Summary.route + "/{averageHeartRate}/{totalDistance}/{totalCalories}/{elapsedTime}",
+                    Summary.route + "/{averageHeartRate}/{totalDistance}/{totalCalories}/{elapsedTime}/{maxHeartRate}/{minHeartRate}",
                     arguments = listOf(
                         navArgument(Summary.averageHeartRateArg) { type = NavType.FloatType },
                         navArgument(Summary.totalDistanceArg) { type = NavType.FloatType },
                         navArgument(Summary.totalCaloriesArg) { type = NavType.FloatType },
-                        navArgument(Summary.elapsedTimeArg) { type = NavType.StringType }
-                    )
+                        navArgument(Summary.elapsedTimeArg) { type = NavType.StringType },
+                        navArgument(Summary.maxHeartRateArg) {type = NavType.FloatType},
+                        navArgument(Summary.minHeartRateArg) {type = NavType.FloatType},
+                        )
                 ) {
                     SummaryRoute(
                         onRestartClick = {
-                            navController.navigateToTopLevel(PreparingExercise)
+                            navController.navigateToTopLevel(Home)
                         }
                     )
                 }
@@ -125,6 +127,6 @@ fun ExerciseSampleApp(
     }
 }
 
-val AlwaysOnRoutes = listOf(PreparingExercise.route, Exercise.route)
+val AlwaysOnRoutes = listOf(Home.route, Exercise.route)
 
 

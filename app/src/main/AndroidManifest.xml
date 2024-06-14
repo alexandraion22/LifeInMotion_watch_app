@@ -33,10 +33,10 @@
             android:value="true" />
 
         <service
-            android:name="com.example.healthapp.app.HeartRateService"
+            android:name="com.example.healthapp.backgroundServices.HeartRateService"
             android:enabled="true" />
         <service
-            android:name="com.example.healthapp.app.StepCountService"
+            android:name="com.example.healthapp.backgroundServices.StepCountService"
             android:enabled="true" />
 
         <activity

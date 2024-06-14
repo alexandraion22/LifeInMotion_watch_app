@@ -222,6 +222,12 @@ private fun HeartRateAndCaloriesRow(uiState: ExerciseScreenState) {
             HRText(
                 hr = uiState.exerciseState?.exerciseMetrics?.heartRate
             )
+            Text(
+                text = "Max HR: ${uiState.maxHeartRate ?: "--"}"
+            )
+            Text(
+                text = "Min HR: ${uiState.minHeartRate ?: "--"}"
+            )
         }
         Row {
             Icon(
@@ -234,6 +240,7 @@ private fun HeartRateAndCaloriesRow(uiState: ExerciseScreenState) {
         }
     }
 }
+
 
 @Composable
 private fun DurationRow(uiState: ExerciseScreenState) {

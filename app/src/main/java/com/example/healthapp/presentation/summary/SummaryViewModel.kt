@@ -22,6 +22,8 @@ class SummaryViewModel @Inject constructor(
             totalCalories = savedStateHandle.get<Float>(Screen.Summary.totalCaloriesArg)!!
                 .toDouble(),
             elapsedTime = Duration.parse(savedStateHandle.get(Screen.Summary.elapsedTimeArg)!!),
+            maxHeartRate = savedStateHandle.get<Float>(Screen.Summary.maxHeartRateArg)?.toDouble() ?: Double.NaN,
+            minHeartRate = savedStateHandle.get<Float>(Screen.Summary.minHeartRateArg)?.toDouble() ?: Double.NaN
         )
     )
 }

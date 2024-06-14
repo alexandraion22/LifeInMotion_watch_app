@@ -8,4 +8,6 @@ data class SummaryScreenState(
     val totalDistance: Double,
     val totalCalories: Double,
     val elapsedTime: Duration,
+    val maxHeartRate: Double,
+    val minHeartRate: Double
 )

@@ -102,6 +102,20 @@ fun SummaryScreen(
                 )
             }
             item {
+                SummaryFormat(
+                    value = formatCalories(uiState.maxHeartRate),
+                    metric = "MaxHR",
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            item {
+                SummaryFormat(
+                    value = formatCalories(uiState.minHeartRate),
+                    metric = "MinHR",
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            item {
                 Chip(
                     label = stringResource(id = R.string.restart),
                     onClick = onRestartClick,
