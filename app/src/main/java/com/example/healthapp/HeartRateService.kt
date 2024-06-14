@@ -72,26 +72,26 @@ class HeartRateService : Service(), SensorEventListener2 {
     @SuppressLint("ForegroundServiceType")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         createNotificationChannel()
+
         val notificationIntent = Intent(this, MainActivity::class.java)
+
+        // intent ce deschide MainActivity - Open App
         val pendingIntent = PendingIntent.getActivity(
             this,
             0, notificationIntent, PendingIntent.FLAG_IMMUTABLE
         )
-
+        // intent ce opreste MainActivity - Stop
         val stopIntent = Intent()
         stopIntent.action = STOP_ACTION
         val pendingIntentStopAction = PendingIntent.getBroadcast(this, 12345, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-
-        val notification = NotificationCompat.Builder(this, "hrservice")
+        val notification = NotificationCompat.Builder(this, "healthServices")
             .setContentTitle("Life in Motion")
             .setContentText("App running in background to collect health data")
             .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Stop", pendingIntentStopAction)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentIntent(pendingIntent)
             .build()
-
         startForeground(1, notification)
-
         return START_STICKY
     }
 
@@ -102,8 +102,8 @@ class HeartRateService : Service(), SensorEventListener2 {
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val serviceChannel = NotificationChannel(
-                "hrservice",
-                "Life In Motion Heartrate Service",
+                "healthServices",
+                "Life In Motion Background Services",
                 NotificationManager.IMPORTANCE_LOW
             )
             val manager = getSystemService(NotificationManager::class.java)
@@ -144,7 +144,5 @@ class HeartRateService : Service(), SensorEventListener2 {
             this.sendBroadcast(updateHRIntent);
         }
         currentHeartRate = 0F;
-
-
     }
 }
