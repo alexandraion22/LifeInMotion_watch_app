@@ -19,16 +19,23 @@ package com.example.healthapp.presentation.exercise
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.material.Icon
@@ -42,6 +49,7 @@ import com.example.healthapp.presentation.summary.SummaryScreenState
 import com.example.healthapp.R
 import com.example.healthapp.app.Workout
 import com.example.healthapp.presentation.component.formatElapsedTime
+import com.example.healthapp.presentation.theme.PsychedelicPurple
 import com.google.android.horologist.annotations.ExperimentalHorologistApi
 import com.google.android.horologist.compose.ambient.AmbientState
 import com.google.android.horologist.compose.layout.ScalingLazyColumn
@@ -87,9 +95,6 @@ fun ExerciseRoute(
     }
 }
 
-/**
- * Shows an error that occured when starting an exercise
- */
 @OptIn(ExperimentalHorologistApi::class)
 @Composable
 fun ErrorStartingExerciseScreen(
@@ -110,9 +115,6 @@ fun ErrorStartingExerciseScreen(
     )
 }
 
-/**
- * Shows while an exercise is in progress
- */
 @OptIn(ExperimentalHorologistApi::class)
 @Composable
 fun ExerciseScreen(
@@ -136,10 +138,40 @@ fun ExerciseScreen(
         ) {
             item {
                 DurationRow(uiState, exerciseViewModel)
+                Spacer(modifier = Modifier.height(8.dp))
             }
 
             item {
-                HeartRateAndCaloriesRow(uiState)
+                Text(
+                    text = "Current HR: ${uiState.exerciseState?.exerciseMetrics?.heartRate ?: "--"}",
+                    fontSize = 16.sp
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            item {
+                Text(
+                    text = "Max HR: ${uiState.maxHeartRate ?: "--"}",
+                    fontSize = 16.sp
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            item {
+                Row (
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_burn),
+                        tint = PsychedelicPurple,
+                        contentDescription = stringResource(id = R.string.calories),
+                        modifier = Modifier.size(30.dp)
+                    )
+                    CaloriesText(
+                        uiState.exerciseState?.exerciseMetrics?.calories
+                    )
+                }
+                Spacer(modifier = Modifier.height(4.dp))
             }
 
             item {
@@ -175,40 +207,6 @@ private fun ExerciseControlButtons(
 }
 
 @Composable
-private fun HeartRateAndCaloriesRow(uiState: ExerciseScreenState) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceAround,
-    ) {
-        Row {
-            Icon(
-                imageVector = Icons.Filled.Favorite,
-                contentDescription = stringResource(id = R.string.heart_rate)
-            )
-            HRText(
-                hr = uiState.exerciseState?.exerciseMetrics?.heartRate
-            )
-            Text(
-                text = "Max HR: ${uiState.maxHeartRate ?: "--"}"
-            )
-            Text(
-                text = "Min HR: ${uiState.minHeartRate ?: "--"}"
-            )
-        }
-        Row {
-            Icon(
-                imageVector = Icons.Default.Favorite,
-                contentDescription = stringResource(id = R.string.calories)
-            )
-            CaloriesText(
-                uiState.exerciseState?.exerciseMetrics?.calories
-            )
-        }
-    }
-}
-
-
-@Composable
 private fun DurationRow(uiState: ExerciseScreenState, exerciseViewModel: ExerciseViewModel) {
     val lastActiveDurationCheckpoint = uiState.exerciseState?.activeDurationCheckpoint
     val exerciseState = uiState.exerciseState?.exerciseState
@@ -216,22 +214,16 @@ private fun DurationRow(uiState: ExerciseScreenState, exerciseViewModel: Exercis
         horizontalArrangement = Arrangement.SpaceAround,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Row {
-            Icon(
-                imageVector = Icons.Default.AccountBox,
-                contentDescription = stringResource(id = R.string.duration)
-            )
-        }
         if (exerciseState != null && lastActiveDurationCheckpoint != null) {
             ActiveDurationText(
                 checkpoint = lastActiveDurationCheckpoint,
                 state = uiState.exerciseState.exerciseState
             ) {
                 exerciseViewModel.updateTime(it)
-                Text(text = formatElapsedTime(it, includeSeconds = true))
+                Text(text = formatElapsedTime(it, includeSeconds = true), fontSize = 18.sp)
             }
         } else {
-            Text(text = "--")
+            Text(text = "--", fontSize = 18.sp)
         }
     }
 }

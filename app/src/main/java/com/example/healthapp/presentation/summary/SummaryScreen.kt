@@ -3,6 +3,7 @@ package com.example.healthapp.presentation.summary
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
@@ -66,15 +67,15 @@ fun SummaryScreen(
                 }
             }
             item {
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(10.dp))
                 SummaryFormat(
                     value = formatElapsedTime(uiState.elapsedTime, includeSeconds = true),
                     metric = stringResource(id = R.string.duration),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
             item {
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(10.dp))
                 SummaryFormat(
                     value = formatHeartRate(uiState.averageHeartRate),
                     metric = stringResource(id = R.string.avgHR),
@@ -82,7 +83,7 @@ fun SummaryScreen(
                 )
             }
             item {
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(10.dp))
                 SummaryFormat(
                     value = formatCalories(uiState.totalCalories),
                     metric = stringResource(id = R.string.calories),
@@ -90,7 +91,7 @@ fun SummaryScreen(
                 )
             }
             item {
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(10.dp))
                 SummaryFormat(
                     value = formatHeartRate(uiState.maxHeartRate),
                     metric = "MaxHR",
@@ -98,7 +99,7 @@ fun SummaryScreen(
                 )
             }
             item {
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(10.dp))
                 SummaryFormat(
                     value = formatHeartRate(uiState.minHeartRate),
                     metric = "MinHR",
@@ -106,8 +107,8 @@ fun SummaryScreen(
                 )
             }
             item {
-                Spacer(modifier = Modifier.height(2.dp))
-                Column(modifier = Modifier.fillMaxWidth(0.7f)) {
+                Spacer(modifier = Modifier.height(20.dp))
+                Column(modifier = Modifier.fillMaxWidth(0.6f).fillMaxHeight(0.7f)) {
                     Chip(
                         label = "Home",
                         onClick = {

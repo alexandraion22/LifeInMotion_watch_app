@@ -18,14 +18,15 @@ package com.example.healthapp.presentation.component
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.Text
 
 @Composable
 fun CaloriesText(calories: Double?) {
     if (calories != null)
-        Text(text = formatCalories(calories))
+        Text(text = formatCalories(calories), fontSize = 16.sp)
     else
-        Text(text = "--")
+        Text(text = "--", fontSize = 16.sp)
 }
 
 @Preview

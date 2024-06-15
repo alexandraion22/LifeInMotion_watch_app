@@ -54,7 +54,8 @@ class MainActivity : FragmentActivity() {
                 onStopSensors = { stopServices() },
                 homeViewModel = homeViewModel,
                 exerciseViewModel = exerciseViewModel,
-                onFinishExercise = ::deployWorkout
+                onFinishExercise = ::deployWorkout,
+                onStartWorkout = { deployStartWorkout() },
             )
 
             LaunchedEffect(Unit) {
@@ -170,10 +171,24 @@ class MainActivity : FragmentActivity() {
         }
     }
 
+    private fun deployStartWorkout() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+            transcriptionNodeId = getNodes().firstOrNull()?.also { nodeId ->
+                Wearable.getMessageClient(applicationContext).sendMessage(
+                    nodeId,
+                    STARTED_WORKOUT_PATH,
+                    timestamp.toByteArray()
+                )
+            }
+        }
+    }
+
     companion object {
         private const val BPM_PATH = "/bpm"
         private const val STEPS_PATH = "/steps"
         private const val WORKOUT_PATH = "/workout"
+        private const val STARTED_WORKOUT_PATH = "/started_workout"
     }
 
     private fun getNodes(): Collection<String> {

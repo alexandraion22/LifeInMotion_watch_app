@@ -47,7 +47,7 @@ class StepCountService : Service(), SensorEventListener {
                 acquire()
             }
         }
-        mSensorManager.registerListener(this@StepCountService, mStepCounterSensor, SensorManager.SENSOR_DELAY_NORMAL)
+        mSensorManager.registerListener(this@StepCountService, mStepCounterSensor, SensorManager.SENSOR_DELAY_UI)
         handler.post(stepCountRunnable)
     }
 

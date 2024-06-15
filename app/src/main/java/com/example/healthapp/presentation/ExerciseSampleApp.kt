@@ -52,7 +52,8 @@ fun ExerciseSampleApp(
     onStopSensors: () -> Unit,
     homeViewModel: HomeViewModel,
     exerciseViewModel: ExerciseViewModel,
-    onFinishExercise: (Workout) -> Unit
+    onFinishExercise: (Workout) -> Unit,
+    onStartWorkout: () -> Unit
 ) {
     val currentScreen by navController.currentBackStackEntryAsState()
     val isAlwaysOnScreen = currentScreen?.destination?.route in AlwaysOnRoutes
@@ -88,6 +89,7 @@ fun ExerciseSampleApp(
                         onPrepareExercise = { exerciseType ->
                             homeViewModel.prepareExercise(exerciseType)
                             navController.navigate(Exercise.route)
+                            onStartWorkout()
                             exerciseViewModel.startExercise(exerciseType)
                         }
                     )
