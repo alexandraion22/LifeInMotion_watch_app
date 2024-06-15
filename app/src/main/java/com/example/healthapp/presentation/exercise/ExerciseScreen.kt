@@ -63,7 +63,7 @@ fun ExerciseRoute(
     val viewModel = hiltViewModel<ExerciseViewModel>()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    if (uiState.isEnded) {
+    if (viewModel.isEnded()) {
         SideEffect {
             onSummary(uiState.toSummary())
         }
@@ -78,10 +78,11 @@ fun ExerciseRoute(
     } else if (ambientState is AmbientState.Interactive) {
         ExerciseScreen(
             onPauseClick = { viewModel.pauseExercise() },
-            onEndClick = { viewModel.endExercise(uiState.toSummary(),onFinishExercise) },
+            onEndClick = { try {viewModel.endExercise(uiState.toSummary(),onFinishExercise)} catch(_: Exception)  { }},
             onResumeClick = { viewModel.resumeExercise() },
             uiState = uiState,
-            modifier = modifier
+            modifier = modifier,
+            exerciseViewModel = viewModel
         )
     }
 }
@@ -119,7 +120,8 @@ fun ExerciseScreen(
     onEndClick: () -> Unit,
     onResumeClick: () -> Unit,
     uiState: ExerciseScreenState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    exerciseViewModel : ExerciseViewModel
 ) {
     val columnState = rememberResponsiveColumnState(
         contentPadding = ScalingLazyColumnDefaults.padding(
@@ -133,7 +135,7 @@ fun ExerciseScreen(
             columnState = columnState
         ) {
             item {
-                DurationRow(uiState)
+                DurationRow(uiState, exerciseViewModel)
             }
 
             item {
@@ -207,7 +209,7 @@ private fun HeartRateAndCaloriesRow(uiState: ExerciseScreenState) {
 
 
 @Composable
-private fun DurationRow(uiState: ExerciseScreenState) {
+private fun DurationRow(uiState: ExerciseScreenState, exerciseViewModel: ExerciseViewModel) {
     val lastActiveDurationCheckpoint = uiState.exerciseState?.activeDurationCheckpoint
     val exerciseState = uiState.exerciseState?.exerciseState
     Row(
@@ -225,7 +227,7 @@ private fun DurationRow(uiState: ExerciseScreenState) {
                 checkpoint = lastActiveDurationCheckpoint,
                 state = uiState.exerciseState.exerciseState
             ) {
-                // TODO sa bag in repo de aici durata? (it)
+                exerciseViewModel.updateTime(it)
                 Text(text = formatElapsedTime(it, includeSeconds = true))
             }
         } else {

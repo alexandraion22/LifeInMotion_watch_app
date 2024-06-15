@@ -38,6 +38,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.Duration
 
 @ActivityRetainedScoped
 class HealthServicesRepository @Inject constructor(
@@ -55,6 +56,9 @@ class HealthServicesRepository @Inject constructor(
 
     private var errorState: MutableStateFlow<String?> = MutableStateFlow(null)
     private var exerciseTypeVal: MutableStateFlow<String?> = MutableStateFlow(null)
+    private var elapsedTimeVal: MutableStateFlow<Duration?> = MutableStateFlow(null)
+    private var isRunningExercise: MutableStateFlow<Boolean?> = MutableStateFlow(null)
+    private var isEndedVal: MutableStateFlow<Boolean?> = MutableStateFlow(null)
 
     val serviceState: StateFlow<ServiceState> = exerciseServiceStateUpdates.combine(errorState) { exerciseServiceState, errorString ->
         ServiceState.Connected(exerciseServiceState.copy(error = errorString))
@@ -68,8 +72,10 @@ class HealthServicesRepository @Inject constructor(
 
     private suspend fun getExerciseCapabilities() = exerciseClientManager.getExerciseCapabilities()
 
-    suspend fun isExerciseInProgress(): Boolean =
-        exerciseClientManager.exerciseClient.isExerciseInProgress()
+    fun isExerciseInProgress(): Boolean {
+        Log.e("THIS",isRunningExercise.value.toString())
+        return isRunningExercise.value ?: false
+    }
 
     suspend fun isTrackingExerciseInAnotherApp(): Boolean =
         exerciseClientManager.exerciseClient.isTrackingExerciseInAnotherApp()
@@ -87,6 +93,8 @@ class HealthServicesRepository @Inject constructor(
     }
     fun startExercise(exerciseType: String) = serviceCall {
         try {
+            isEndedVal.value = false
+            isRunningExercise.value = true
             exerciseTypeVal.value = exerciseType
             errorState.value = null
             startExercise(exerciseType)
@@ -96,8 +104,27 @@ class HealthServicesRepository @Inject constructor(
         }
     }
     fun pauseExercise() = serviceCall { pauseExercise() }
-    fun endExercise() = serviceCall { endExercise() }
+    fun endExercise() = serviceCall {
+        isEndedVal.value = true
+        isRunningExercise.value = false
+        endExercise()
+    }
     fun resumeExercise() = serviceCall { resumeExercise() }
+    fun updateTime(elapsedTime: Duration) {
+        elapsedTimeVal.value = elapsedTime
+    }
+
+    fun getElapsedTime(): Duration {
+        return elapsedTimeVal.value ?: Duration.ZERO
+    }
+
+    fun isEnded(): Boolean {
+        return isEndedVal.value ?: false
+    }
+
+    fun updateIsEnded(b: Boolean) {
+        isEndedVal.value = b
+    }
 }
 
 /** Store exercise values in the service state. While the service is connected,

@@ -178,10 +178,8 @@ class ExerciseService : LifecycleService() {
     }
 
     fun removeOngoingActivityNotification() {
-        if (serviceRunningInForeground) {
-            Log.d(TAG, "Removing ongoing activity notification")
-            stopForeground(STOP_FOREGROUND_REMOVE)
-        }
+        Log.d(TAG, "Removing ongoing activity notification")
+        stopForeground(STOP_FOREGROUND_REMOVE)
     }
 
     private fun postOngoingActivityNotification(exerciseType: String) {

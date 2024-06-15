@@ -18,6 +18,7 @@ import com.example.healthapp.presentation.component.formatCalories
 import com.example.healthapp.presentation.component.formatElapsedTime
 import com.example.healthapp.presentation.component.formatHeartRate
 import com.example.healthapp.R
+import com.example.healthapp.presentation.exercise.ExerciseViewModel
 import com.example.healthapp.presentation.theme.PsychedelicPurple
 import com.google.android.horologist.annotations.ExperimentalHorologistApi
 import com.google.android.horologist.compose.layout.ScalingLazyColumn
@@ -33,18 +34,21 @@ import com.google.android.horologist.compose.material.Title
 @Composable
 fun SummaryRoute(
     onRestartClick: () -> Unit,
+    exerciseViewModel: ExerciseViewModel
 ) {
     val viewModel = hiltViewModel<SummaryViewModel>()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    SummaryScreen(uiState = uiState, onRestartClick = onRestartClick)
+    SummaryScreen(uiState = uiState, onRestartClick = onRestartClick, exerciseViewModel = exerciseViewModel)
 }
 
 
+@OptIn(ExperimentalHorologistApi::class)
 @Composable
 fun SummaryScreen(
     uiState: SummaryScreenState,
     onRestartClick: () -> Unit,
+    exerciseViewModel: ExerciseViewModel
 ) {
     val columnState = rememberResponsiveColumnState(
         contentPadding = padding(
@@ -106,7 +110,10 @@ fun SummaryScreen(
                 Column(modifier = Modifier.fillMaxWidth(0.7f)) {
                     Chip(
                         label = "Home",
-                        onClick = onRestartClick,
+                        onClick = {
+                            exerciseViewModel.updateIsEnded(false)
+                            onRestartClick()
+                        },
                         colors = ChipDefaults.chipColors(backgroundColor = PsychedelicPurple)
                     )
                 }

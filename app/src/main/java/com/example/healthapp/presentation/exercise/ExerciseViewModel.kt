@@ -28,12 +28,12 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import java.time.Duration
 
 @HiltViewModel
 class ExerciseViewModel @Inject constructor(
     private val healthServicesRepository: HealthServicesRepository
 ) : ViewModel() {
-
     private var maxHeartRate: Double? = null
     private var minHeartRate: Double? = null
 
@@ -63,6 +63,9 @@ class ExerciseViewModel @Inject constructor(
         }
     )
 
+    fun updateTime(elapsedTime : Duration){
+        healthServicesRepository.updateTime(elapsedTime)
+    }
     private fun updateHeartRateBounds(currentHeartRate: Double?) {
         currentHeartRate?.let {
             if (maxHeartRate == null || it > maxHeartRate!!) {
@@ -93,13 +96,25 @@ class ExerciseViewModel @Inject constructor(
             minHR =summary.minHeartRate.toInt(),
             maxHR = summary.maxHeartRate.toInt(),
             calories = summary.totalCalories.toInt(),
-            duration = summary.elapsedTime.toMillis(),
+            duration = healthServicesRepository.getElapsedTime().toMillis(),
             exerciseType = healthServicesRepository.getExerciseType()))
         healthServicesRepository.endExercise()
     }
 
     fun resumeExercise() {
         healthServicesRepository.resumeExercise()
+    }
+
+    fun isEnded(): Boolean {
+        return healthServicesRepository.isEnded()
+    }
+
+    fun updateIsEnded(b: Boolean) {
+        healthServicesRepository.updateIsEnded(b)
+    }
+
+    fun getElapsedTime(): Duration {
+        return healthServicesRepository.getElapsedTime()
     }
 }
 

@@ -1,6 +1,7 @@
 package com.example.healthapp.app
 
 import androidx.navigation.NavController
+import com.example.healthapp.presentation.exercise.ExerciseViewModel
 import com.example.healthapp.presentation.summary.SummaryScreenState
 
 sealed class Screen(
@@ -10,8 +11,8 @@ sealed class Screen(
     object ExerciseNotAvailable : Screen("exerciseNotAvailable")
     object Home : Screen("home")
     object Summary : Screen("summary") {
-        fun buildRoute(summary: SummaryScreenState): String {
-            return "$route/${summary.averageHeartRate}/${summary.totalDistance}/${summary.totalCalories}/${summary.elapsedTime}/${summary.maxHeartRate}/${summary.minHeartRate}"
+        fun buildRoute(summary: SummaryScreenState, exerciseViewModel: ExerciseViewModel): String {
+            return "$route/${summary.averageHeartRate}/${summary.totalDistance}/${summary.totalCalories}/${exerciseViewModel.getElapsedTime()}/${summary.maxHeartRate}/${summary.minHeartRate}"
         }
         val averageHeartRateArg = "averageHeartRate"
         val totalDistanceArg = "totalDistance"

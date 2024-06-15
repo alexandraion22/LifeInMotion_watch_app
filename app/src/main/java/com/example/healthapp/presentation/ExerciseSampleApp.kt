@@ -97,7 +97,7 @@ fun ExerciseSampleApp(
                     ExerciseRoute(
                         ambientState = ambientStateUpdate.ambientState,
                         onSummary = {
-                            navController.navigateToTopLevel(Summary, Summary.buildRoute(it))
+                            navController.navigateToTopLevel(Summary, Summary.buildRoute(it,exerciseViewModel))
                         },
                         onRestart = {
                             navController.navigateToTopLevel(Home)
@@ -125,7 +125,8 @@ fun ExerciseSampleApp(
                     SummaryRoute(
                         onRestartClick = {
                             navController.navigateToTopLevel(Home)
-                        }
+                        },
+                        exerciseViewModel = exerciseViewModel
                     )
                 }
             }
