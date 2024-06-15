@@ -19,7 +19,9 @@
 package com.example.healthapp.data
 
 import android.content.Context
-import com.example.healthapp.di.bindService
+import android.util.Log
+import androidx.health.services.client.data.ExerciseType
+import com.example.healthapp.modules.bindService
 import com.example.healthapp.service.ExerciseLogger
 import com.example.healthapp.service.ExerciseService
 import com.example.healthapp.service.ExerciseServiceState
@@ -52,6 +54,7 @@ class HealthServicesRepository @Inject constructor(
         ExerciseService.LocalBinder::exerciseServiceState)
 
     private var errorState: MutableStateFlow<String?> = MutableStateFlow(null)
+    private var exerciseTypeVal: MutableStateFlow<String?> = MutableStateFlow(null)
 
     val serviceState: StateFlow<ServiceState> = exerciseServiceStateUpdates.combine(errorState) { exerciseServiceState, errorString ->
         ServiceState.Connected(exerciseServiceState.copy(error = errorString))
@@ -71,7 +74,7 @@ class HealthServicesRepository @Inject constructor(
     suspend fun isTrackingExerciseInAnotherApp(): Boolean =
         exerciseClientManager.exerciseClient.isTrackingExerciseInAnotherApp()
 
-    fun prepareExercise() = serviceCall { prepareExercise() }
+    fun prepareExercise(exerciseType: String) = serviceCall { prepareExercise(exerciseType) }
 
     private fun serviceCall(function: suspend ExerciseService.() -> Unit) = coroutineScope.launch {
         binderConnection.runWhenConnected {
@@ -79,10 +82,14 @@ class HealthServicesRepository @Inject constructor(
         }
     }
 
-    fun startExercise() = serviceCall {
+    fun getExerciseType() :String {
+        return exerciseTypeVal.value ?: ""
+    }
+    fun startExercise(exerciseType: String) = serviceCall {
         try {
+            exerciseTypeVal.value = exerciseType
             errorState.value = null
-            startExercise()
+            startExercise(exerciseType)
         } catch (e: Exception) {
             errorState.value = e.message
             logger.error("Error starting exercise", e.fillInStackTrace())

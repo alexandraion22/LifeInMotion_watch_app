@@ -1,4 +1,4 @@
-package com.example.healthapp.di
+package com.example.healthapp.modules
 
 import android.app.Service
 import android.content.Context

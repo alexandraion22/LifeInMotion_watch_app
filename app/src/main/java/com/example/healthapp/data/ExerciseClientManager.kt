@@ -17,6 +17,10 @@ package com.example.healthapp.data
 
 import android.annotation.SuppressLint
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.health.services.client.ExerciseClient
 import androidx.health.services.client.ExerciseUpdateCallback
 import androidx.health.services.client.HealthServicesClient
@@ -54,10 +58,9 @@ class ExerciseClientManager @Inject constructor(
     val logger: ExerciseLogger
 ) {
     val exerciseClient: ExerciseClient = healthServicesClient.exerciseClient
-
+    var exerciseTypeVal: String? = null
     suspend fun getExerciseCapabilities(): ExerciseTypeCapabilities? {
         val capabilities = exerciseClient.getCapabilities()
-
         return if (ExerciseType.WEIGHTLIFTING in capabilities.supportedExerciseTypes) {
             capabilities.getExerciseTypeCapabilities(ExerciseType.WEIGHTLIFTING)
         } else {
@@ -65,18 +68,13 @@ class ExerciseClientManager @Inject constructor(
         }
     }
 
-    suspend fun startExercise() {
-        logger.log("Starting exercise")
-        Log.e("TAG","HERE")
-        // Types for which we want to receive metrics. Only ask for ones that are supported.
+    suspend fun startExercise(exerciseType: String) {
         val capabilities = getExerciseCapabilities()
 
         if (capabilities == null) {
             logger.log("No capabilities")
             return
         }
-
-        Log.e("HERE",capabilities.toString())
 
         val dataTypes = setOf(
             DataType.HEART_RATE_BPM,
@@ -101,7 +99,13 @@ class ExerciseClientManager @Inject constructor(
         val supportsAutoPauseAndResume = capabilities.supportsAutoPauseAndResume
 
         val config = ExerciseConfig(
-            exerciseType = ExerciseType.WEIGHTLIFTING,
+            exerciseType = (when  (exerciseType) {
+                "weights" -> ExerciseType.WEIGHTLIFTING
+                "aerobic" -> ExerciseType.DANCING
+                "circuit_training" ->ExerciseType.STRENGTH_TRAINING
+                "pilates" ->ExerciseType.PILATES
+                else -> ExerciseType.WEIGHTLIFTING
+            }),
             dataTypes = dataTypes,
             isAutoPauseAndResumeEnabled = supportsAutoPauseAndResume,
             isGpsEnabled = false,
@@ -116,12 +120,30 @@ class ExerciseClientManager @Inject constructor(
      * Note: don't call this method from outside of ExerciseService.kt
      * when acquiring calories or distance.
      */
-    suspend fun prepareExercise() {
+    suspend fun prepareExercise(exerciseType: String) {
         logger.log("Preparing an exercise")
-        val warmUpConfig = WarmUpConfig(
-            exerciseType = ExerciseType.WEIGHTLIFTING,
-            dataTypes = setOf(DataType.HEART_RATE_BPM)
-        )
+
+        exerciseTypeVal = exerciseType
+        val warmUpConfig = when (exerciseType) {
+            "weights" -> WarmUpConfig(
+                exerciseType = ExerciseType.WEIGHTLIFTING,
+                dataTypes = setOf(DataType.HEART_RATE_BPM)
+            )
+            "aerobic" -> WarmUpConfig(
+                exerciseType = ExerciseType.DANCING,
+                dataTypes = setOf(DataType.HEART_RATE_BPM)
+            )
+            "pilates" -> WarmUpConfig(
+                exerciseType = ExerciseType.PILATES,
+                dataTypes = setOf(DataType.HEART_RATE_BPM)
+            )
+            "circuit_training" -> WarmUpConfig(
+                exerciseType = ExerciseType.STRENGTH_TRAINING,
+                dataTypes = setOf(DataType.HEART_RATE_BPM)
+            )
+            else -> throw IllegalArgumentException("Unsupported exercise type: $exerciseType")
+        }
+
         try {
             exerciseClient.prepareExercise(warmUpConfig)
         } catch (e: Exception) {

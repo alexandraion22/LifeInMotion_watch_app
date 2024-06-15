@@ -76,7 +76,10 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.4.1'
     implementation("com.google.android.horologist:horologist-health-service:0.6.13")
     implementation 'androidx.hilt:hilt-navigation-compose:1.0.0-alpha03' // Replace with the latest version
-    implementation 'com.google.android.horologist:horologist-compose-material:0.5.27'  // Replace with the latest version
+    implementation 'com.google.android.horologist:horologist-compose-material:0.6.13'  // Replace with the latest version
+    implementation "com.google.android.horologist:horologist-health-composables:0.6.13"
+
+
     implementation("androidx.wear:wear-ongoing:1.1.0-alpha01")
     compileOnly 'com.google.android.wearable:wearable:2.5.0'
 

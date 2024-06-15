@@ -22,8 +22,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.runtime.Composable
@@ -36,14 +34,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.Text
 import com.example.healthapp.presentation.component.CaloriesText
-import com.example.healthapp.presentation.component.DistanceText
 import com.example.healthapp.presentation.component.HRText
 import com.example.healthapp.presentation.component.PauseButton
 import com.example.healthapp.presentation.component.ResumeButton
-import com.example.healthapp.presentation.component.StartButton
 import com.example.healthapp.presentation.component.StopButton
 import com.example.healthapp.presentation.summary.SummaryScreenState
 import com.example.healthapp.R
+import com.example.healthapp.app.Workout
+import com.example.healthapp.presentation.component.formatElapsedTime
 import com.google.android.horologist.annotations.ExperimentalHorologistApi
 import com.google.android.horologist.compose.ambient.AmbientState
 import com.google.android.horologist.compose.layout.ScalingLazyColumn
@@ -51,6 +49,7 @@ import com.google.android.horologist.compose.layout.ScalingLazyColumnDefaults
 import com.google.android.horologist.compose.layout.ScreenScaffold
 import com.google.android.horologist.compose.layout.rememberResponsiveColumnState
 import com.google.android.horologist.compose.material.AlertDialog
+import com.google.android.horologist.health.composables.ActiveDurationText
 
 @Composable
 fun ExerciseRoute(
@@ -59,6 +58,7 @@ fun ExerciseRoute(
     onSummary: (SummaryScreenState) -> Unit,
     onRestart: () -> Unit,
     onFinishActivity: () -> Unit,
+    onFinishExercise: (Workout) -> Unit
 ) {
     val viewModel = hiltViewModel<ExerciseViewModel>()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -78,9 +78,8 @@ fun ExerciseRoute(
     } else if (ambientState is AmbientState.Interactive) {
         ExerciseScreen(
             onPauseClick = { viewModel.pauseExercise() },
-            onEndClick = { viewModel.endExercise() },
+            onEndClick = { viewModel.endExercise(uiState.toSummary(),onFinishExercise) },
             onResumeClick = { viewModel.resumeExercise() },
-            onStartClick = { viewModel.startExercise() },
             uiState = uiState,
             modifier = modifier
         )
@@ -113,12 +112,12 @@ fun ErrorStartingExerciseScreen(
 /**
  * Shows while an exercise is in progress
  */
+@OptIn(ExperimentalHorologistApi::class)
 @Composable
 fun ExerciseScreen(
     onPauseClick: () -> Unit,
     onEndClick: () -> Unit,
     onResumeClick: () -> Unit,
-    onStartClick: () -> Unit,
     uiState: ExerciseScreenState,
     modifier: Modifier = Modifier
 ) {
@@ -142,13 +141,8 @@ fun ExerciseScreen(
             }
 
             item {
-                DistanceAndLapsRow(uiState)
-            }
-
-            item {
                 ExerciseControlButtons(
                     uiState,
-                    onStartClick,
                     onEndClick,
                     onResumeClick,
                     onPauseClick
@@ -161,7 +155,6 @@ fun ExerciseScreen(
 @Composable
 private fun ExerciseControlButtons(
     uiState: ExerciseScreenState,
-    onStartClick: () -> Unit,
     onEndClick: () -> Unit,
     onResumeClick: () -> Unit,
     onPauseClick: () -> Unit
@@ -170,40 +163,11 @@ private fun ExerciseControlButtons(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        if (uiState.isEnding) {
-            StartButton(onStartClick)
-        } else {
-            StopButton(onEndClick)
-        }
-
+        StopButton(onEndClick)
         if (uiState.isPaused) {
             ResumeButton(onResumeClick)
         } else {
             PauseButton(onPauseClick)
-        }
-    }
-}
-
-@Composable
-private fun DistanceAndLapsRow(uiState: ExerciseScreenState) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceAround,
-    ) {
-        Row {
-            Icon(
-                imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                contentDescription = stringResource(id = R.string.distance)
-            )
-            DistanceText(uiState.exerciseState?.exerciseMetrics?.distance)
-        }
-
-        Row {
-            Icon(
-                imageVector = Icons.AutoMirrored.Default.ArrowForward,
-                contentDescription = stringResource(id = R.string.laps)
-            )
-            Text(text = uiState.exerciseState?.exerciseLaps?.toString() ?: "--")
         }
     }
 }
@@ -255,6 +219,17 @@ private fun DurationRow(uiState: ExerciseScreenState) {
                 imageVector = Icons.Default.AccountBox,
                 contentDescription = stringResource(id = R.string.duration)
             )
+        }
+        if (exerciseState != null && lastActiveDurationCheckpoint != null) {
+            ActiveDurationText(
+                checkpoint = lastActiveDurationCheckpoint,
+                state = uiState.exerciseState.exerciseState
+            ) {
+                // TODO sa bag in repo de aici durata? (it)
+                Text(text = formatElapsedTime(it, includeSeconds = true))
+            }
+        } else {
+            Text(text = "--")
         }
     }
 }

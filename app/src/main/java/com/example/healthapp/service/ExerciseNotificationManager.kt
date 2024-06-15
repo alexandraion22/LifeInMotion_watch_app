@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.SystemClock
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.wear.ongoing.OngoingActivity
@@ -34,7 +35,8 @@ class ExerciseNotificationManager @Inject constructor(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun buildNotification(duration: Duration): Notification {
+    fun buildNotification(duration: Duration, exerciseType: String): Notification {
+        Log.e("NOTIFICATION",exerciseType)
         // Make an intent that will take the user straight to the exercise UI.
         val notificationIntent = Intent(applicationContext, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
@@ -48,7 +50,14 @@ class ExerciseNotificationManager @Inject constructor(
             NotificationCompat.Builder(applicationContext, NOTIFICATION_CHANNEL)
                 .setContentTitle(NOTIFICATION_TITLE)
                 .setContentText(NOTIFICATION_TEXT)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setSmallIcon(when (exerciseType) {
+                    "weights" -> R.drawable.ic_weightlifting
+                    "pilates" -> R.drawable.ic_pilates
+                    "aerobic" -> R.drawable.ic_aerobic
+                    "circuit_training" -> R.drawable.ic_circuit_training
+                    else -> R.drawable.ic_launcher_foreground
+                    }
+                 )
                 .setContentIntent(pendingIntent)
                 .setOngoing(true)
                 .setCategory(NotificationCompat.CATEGORY_WORKOUT)
@@ -61,8 +70,20 @@ class ExerciseNotificationManager @Inject constructor(
             .build()
         val ongoingActivity =
             OngoingActivity.Builder(applicationContext, NOTIFICATION_ID, notificationBuilder)
-                .setAnimatedIcon(R.drawable.ic_launcher_foreground)
-                .setStaticIcon(R.drawable.ic_launcher_foreground)
+                .setAnimatedIcon(when (exerciseType) {
+                    "weights" -> R.drawable.ic_weightlifting
+                    "pilates" -> R.drawable.ic_pilates
+                    "aerobic" -> R.drawable.ic_aerobic
+                    "circuit_training" -> R.drawable.ic_circuit_training
+                    else -> R.drawable.ic_launcher_foreground}
+                )
+                .setStaticIcon(when (exerciseType) {
+                    "weights" -> R.drawable.ic_weightlifting
+                    "pilates" -> R.drawable.ic_pilates
+                    "aerobic" -> R.drawable.ic_aerobic
+                    "circuit_training" -> R.drawable.ic_circuit_training
+                    else -> R.drawable.ic_launcher_foreground}
+                )
                 .setTouchIntent(pendingIntent)
                 .setStatus(ongoingActivityStatus)
                 .build()

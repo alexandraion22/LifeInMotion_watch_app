@@ -20,6 +20,7 @@ import com.example.healthapp.backgroundServices.HeartRateService
 import com.example.healthapp.backgroundServices.StepCountService
 import com.example.healthapp.presentation.ExerciseSampleApp
 import com.example.healthapp.presentation.exercise.ExerciseViewModel
+import com.example.healthapp.presentation.home.HomeViewModel
 import com.google.android.gms.tasks.Tasks
 import com.google.android.gms.wearable.Wearable
 import dagger.hilt.android.AndroidEntryPoint
@@ -35,6 +36,7 @@ class MainActivity : FragmentActivity() {
     private lateinit var navController: NavHostController
     private val exerciseViewModel by viewModels<ExerciseViewModel>()
     private var transcriptionNodeId: String? = null
+    private val homeViewModel by viewModels<HomeViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splash = installSplashScreen()
@@ -48,7 +50,11 @@ class MainActivity : FragmentActivity() {
             ExerciseSampleApp(
                 navController,
                 onFinishActivity = { this.finish() },
-                onStartSensors = { startFlow() }
+                onStartSensors = { startFlow() },
+                onStopSensors = { stopServices() },
+                homeViewModel = homeViewModel,
+                exerciseViewModel = exerciseViewModel,
+                onFinishExercise = ::deployWorkout
             )
 
             LaunchedEffect(Unit) {
@@ -151,9 +157,23 @@ class MainActivity : FragmentActivity() {
         }
     }
 
+    private fun deployWorkout(workout: Workout) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+            val dataToSend = "$timestamp|${workout.avgHR}|${workout.minHR}|${workout.maxHR}|${workout.calories}|${workout.duration}|${workout.exerciseType}"
+            transcriptionNodeId = getNodes().firstOrNull()?.also { nodeId ->
+                Wearable.getMessageClient(applicationContext).sendMessage(
+                    nodeId,
+                    WORKOUT_PATH,
+                    dataToSend.toByteArray())
+            }
+        }
+    }
+
     companion object {
         private const val BPM_PATH = "/bpm"
         private const val STEPS_PATH = "/steps"
+        private const val WORKOUT_PATH = "/workout"
     }
 
     private fun getNodes(): Collection<String> {

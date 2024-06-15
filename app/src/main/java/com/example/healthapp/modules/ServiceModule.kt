@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.healthapp.di
+package com.example.healthapp.modules
 
 import android.app.NotificationManager
 import android.app.Service

@@ -15,10 +15,13 @@
  */
 package com.example.healthapp.presentation.exercise
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.healthapp.app.Workout
 import com.example.healthapp.data.HealthServicesRepository
 import com.example.healthapp.data.ServiceState
+import com.example.healthapp.presentation.summary.SummaryScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
@@ -76,15 +79,22 @@ class ExerciseViewModel @Inject constructor(
         return healthServicesRepository.isExerciseInProgress()
     }
 
-    fun startExercise() {
-        healthServicesRepository.startExercise()
+    fun startExercise(exerciseType: String) {
+        healthServicesRepository.startExercise(exerciseType)
     }
 
     fun pauseExercise() {
         healthServicesRepository.pauseExercise()
     }
 
-    fun endExercise() {
+    fun endExercise(summary: SummaryScreenState, onFinishExercise: (Workout) -> Unit) {
+        Log.e("TAG",summary.toString())
+        onFinishExercise(Workout(avgHR = summary.averageHeartRate.toInt(),
+            minHR =summary.minHeartRate.toInt(),
+            maxHR = summary.maxHeartRate.toInt(),
+            calories = summary.totalCalories.toInt(),
+            duration = summary.elapsedTime.toMillis(),
+            exerciseType = healthServicesRepository.getExerciseType()))
         healthServicesRepository.endExercise()
     }
 

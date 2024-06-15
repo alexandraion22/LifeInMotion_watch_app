@@ -29,10 +29,13 @@ import com.example.healthapp.app.Screen.Exercise
 import com.example.healthapp.app.Screen.ExerciseNotAvailable
 import com.example.healthapp.app.Screen.Home
 import com.example.healthapp.app.Screen.Summary
+import com.example.healthapp.app.Workout
 import com.example.healthapp.app.navigateToTopLevel
 import com.example.healthapp.presentation.dialogs.ExerciseNotAvailable
 import com.example.healthapp.presentation.exercise.ExerciseRoute
-import com.example.healthapp.presentation.preparing.PreparingExerciseRoute
+import com.example.healthapp.presentation.exercise.ExerciseViewModel
+import com.example.healthapp.presentation.home.HomeRoute
+import com.example.healthapp.presentation.home.HomeViewModel
 import com.example.healthapp.presentation.summary.SummaryRoute
 import com.google.android.horologist.annotations.ExperimentalHorologistApi
 import com.google.android.horologist.compose.ambient.AmbientAware
@@ -45,7 +48,11 @@ import com.google.android.horologist.compose.layout.ResponsiveTimeText
 fun ExerciseSampleApp(
     navController: NavHostController,
     onFinishActivity: () -> Unit,
-    onStartSensors: () -> Unit // Lambda to start sensors
+    onStartSensors: () -> Unit,
+    onStopSensors: () -> Unit,
+    homeViewModel: HomeViewModel,
+    exerciseViewModel: ExerciseViewModel,
+    onFinishExercise: (Workout) -> Unit
 ) {
     val currentScreen by navController.currentBackStackEntryAsState()
     val isAlwaysOnScreen = currentScreen?.destination?.route in AlwaysOnRoutes
@@ -67,15 +74,8 @@ fun ExerciseSampleApp(
 
                 ) {
                 composable(Home.route) {
-                    PreparingExerciseRoute(
+                    HomeRoute(
                         ambientState = ambientStateUpdate.ambientState,
-                        onStart = {
-                            navController.navigate(Exercise.route) {
-                                popUpTo(navController.graph.id) {
-                                    inclusive = false
-                                }
-                            }
-                        },
                         onNoExerciseCapabilities = {
                             navController.navigate(ExerciseNotAvailable.route) {
                                 popUpTo(navController.graph.id) {
@@ -83,8 +83,13 @@ fun ExerciseSampleApp(
                                 }
                             }
                         },
-                        onFinishActivity = onFinishActivity,
-                        onStartSensors = onStartSensors
+                        onStartSensors = onStartSensors,
+                        onStopSensors = onStopSensors,
+                        onPrepareExercise = { exerciseType ->
+                            homeViewModel.prepareExercise(exerciseType)
+                            navController.navigate(Exercise.route)
+                            exerciseViewModel.startExercise(exerciseType)
+                        }
                     )
                 }
 
@@ -97,7 +102,8 @@ fun ExerciseSampleApp(
                         onRestart = {
                             navController.navigateToTopLevel(Home)
                         },
-                        onFinishActivity = onFinishActivity
+                        onFinishActivity = onFinishActivity,
+                        onFinishExercise = onFinishExercise
                     )
                 }
 

@@ -1,4 +1,4 @@
-package com.example.healthapp.presentation.preparing
+package com.example.healthapp.presentation.home
 
 import android.Manifest
 import android.os.Build
@@ -17,21 +17,11 @@ import javax.inject.Inject
 import kotlin.time.Duration.Companion.seconds
 
 @HiltViewModel
-class PreparingViewModel @Inject constructor(
+class HomeViewModel @Inject constructor(
     private val healthServicesRepository: HealthServicesRepository
 ) : ViewModel() {
 
-    init {
-        viewModelScope.launch {
-            healthServicesRepository.prepareExercise()
-        }
-    }
-
-    fun startExercise() {
-        healthServicesRepository.startExercise()
-    }
-
-    val uiState: StateFlow<PreparingScreenState> = healthServicesRepository.serviceState.map {
+    val uiState: StateFlow<HomeScreenState> = healthServicesRepository.serviceState.map {
         val isTrackingInAnotherApp = healthServicesRepository.isTrackingExerciseInAnotherApp()
         val hasExerciseCapabilities = healthServicesRepository.hasExerciseCapability()
         toUiState(
@@ -45,15 +35,24 @@ class PreparingViewModel @Inject constructor(
         initialValue = toUiState(healthServicesRepository.serviceState.value)
     )
 
+    fun prepareExercise(exerciseType: String) {
+        viewModelScope.launch {
+            healthServicesRepository.prepareExercise(exerciseType)
+        }
+    }
+
+    fun getExerciseType(): String {
+        return healthServicesRepository.getExerciseType()
+    }
     private fun toUiState(
         serviceState: ServiceState,
         isTrackingInAnotherApp: Boolean = false,
         hasExerciseCapabilities: Boolean = true
-    ): PreparingScreenState {
+    ): HomeScreenState {
         return if (serviceState is ServiceState.Disconnected) {
-            PreparingScreenState.Disconnected(serviceState, isTrackingInAnotherApp, permissions)
+            HomeScreenState.Disconnected(serviceState, isTrackingInAnotherApp, permissions)
         } else {
-            PreparingScreenState.Preparing(
+            HomeScreenState.Home(
                 serviceState = serviceState as ServiceState.Connected,
                 isTrackingInAnotherApp = isTrackingInAnotherApp,
                 requiredPermissions = permissions,

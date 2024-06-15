@@ -64,17 +64,17 @@ class ExerciseService : LifecycleService() {
     /**
      * Prepare exercise in this service's coroutine context.
      */
-    suspend fun prepareExercise() {
-        exerciseClientManager.prepareExercise()
+    suspend fun prepareExercise(exerciseType: String) {
+        exerciseClientManager.prepareExercise(exerciseType)
     }
 
     /**
      * Start exercise in this service's coroutine context.
      */
-    suspend fun startExercise() {
+    suspend fun startExercise(exerciseType: String) {
         Log.e("HERE","PLEASE")
-        postOngoingActivityNotification()
-        exerciseClientManager.startExercise()
+        postOngoingActivityNotification(exerciseType)
+        exerciseClientManager.startExercise(exerciseType)
     }
 
     /**
@@ -184,7 +184,7 @@ class ExerciseService : LifecycleService() {
         }
     }
 
-    private fun postOngoingActivityNotification() {
+    private fun postOngoingActivityNotification(exerciseType: String) {
             Log.d(TAG, "Posting ongoing activity notification")
 
             exerciseNotificationManager.createNotificationChannel()
@@ -192,7 +192,8 @@ class ExerciseService : LifecycleService() {
             startForeground(
                 ExerciseNotificationManager.NOTIFICATION_ID,
                 exerciseNotificationManager.buildNotification(
-                    serviceState.activeDurationCheckpoint?.activeDuration ?: Duration.ZERO
+                    serviceState.activeDurationCheckpoint?.activeDuration ?: Duration.ZERO,
+                    exerciseType
                 )
             )
     }
